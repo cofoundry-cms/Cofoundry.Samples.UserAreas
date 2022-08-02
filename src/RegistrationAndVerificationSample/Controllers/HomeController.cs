@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace RegistrationAndVerificationSample.Controllers
+namespace RegistrationAndVerificationSample.Controllers;
+
+public class HomeController : Controller
 {
-    public class HomeController : Controller
+    [Route("/")]
+    public IActionResult Index()
     {
-        [Route("/")]
-        public IActionResult Index()
-        {
-            return View();
-        }
+        return View();
     }
 }

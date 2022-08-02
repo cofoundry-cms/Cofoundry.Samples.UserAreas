@@ -1,7 +1,4 @@
-using Cofoundry.Domain;
-using Cofoundry.Web;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Threading.Tasks;
 
 namespace AuthenticationSample.Pages.Members
 {
