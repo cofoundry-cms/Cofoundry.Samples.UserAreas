@@ -1,10 +1,9 @@
-﻿namespace AuthenticationSample
+namespace AuthenticationSample;
+
+public class RouteRegistration : IRouteRegistration
 {
-    public class RouteRegistration : IRouteRegistration
+    public void RegisterRoutes(IEndpointRouteBuilder routeBuilder)
     {
-        public void RegisterRoutes(IEndpointRouteBuilder routeBuilder)
-        {
-            routeBuilder.MapRazorPages();
-        }
+        routeBuilder.MapRazorPages();
     }
 }

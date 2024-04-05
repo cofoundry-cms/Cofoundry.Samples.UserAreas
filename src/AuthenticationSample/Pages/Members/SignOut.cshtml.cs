@@ -1,42 +1,40 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace AuthenticationSample.Pages.Members
+namespace AuthenticationSample.Pages.Members;
+
+public class SignOutModel : PageModel
 {
-    public class SignOutModel : PageModel
+    private readonly IAdvancedContentRepository _contentRepository;
+
+    public SignOutModel(
+        IAdvancedContentRepository contentRepository
+        )
     {
-        private readonly IAdvancedContentRepository _contentRepository;
+        _contentRepository = contentRepository;
+    }
 
-        public SignOutModel(
-            IAdvancedContentRepository contentRepository
-            )
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var isSignedIn = await _contentRepository
+            .Users()
+            .Current()
+            .IsSignedIn()
+            .ExecuteAsync();
+
+        if (isSignedIn)
         {
-            _contentRepository = contentRepository;
+            return RedirectToPage("./");
         }
 
+        return Page();
+    }
 
-        public async Task<IActionResult> OnGetAsync()
-        {
-            var isSignedIn = await _contentRepository
-                .Users()
-                .Current()
-                .IsSignedIn()
-                .ExecuteAsync();
-
-            if (isSignedIn)
-            {
-                return RedirectToPage("./");
-            }
-
-            return Page();
-        }
-
-        public async Task OnPostAsync()
-        {
-            await _contentRepository
-                .Users()
-                .Authentication()
-                .SignOutAsync();
-        }
+    public async Task OnPostAsync()
+    {
+        await _contentRepository
+            .Users()
+            .Authentication()
+            .SignOutAsync();
     }
 }

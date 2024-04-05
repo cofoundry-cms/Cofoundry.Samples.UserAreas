@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RegistrationAndVerificationSample.Controllers;
 
@@ -49,11 +49,12 @@ public class MembersAuthController : Controller
             })
             .ExecuteAsync();
 
-        if (!ModelState.IsValid)
+        if (!ModelState.IsValid || !authResult.IsSuccess)
         {
             // If the result isn't successful, the the ModelState will be populated
             // with an an error, but you could ignore ModelState handling and
-            // instead add your own custom error views/messages by using authResult directly
+            // instead add your own custom error views/messages by using authResult directly.
+            // "authResult.IsSuccess" is only referenced to improve nullable type handling in subsequent code.
             return View(viewModel);
         }
 
@@ -94,7 +95,7 @@ public class MembersAuthController : Controller
     }
 
     [HttpPost("SignOut")]
-    public async Task<IActionResult> SignOut()
+    public async Task<IActionResult> SignOutUser()
     {
         await _contentRepository
             .Users()

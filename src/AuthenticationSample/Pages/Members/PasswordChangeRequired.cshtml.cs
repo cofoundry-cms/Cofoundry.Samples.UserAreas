@@ -1,98 +1,82 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
 
-namespace AuthenticationSample.Pages.Members
+namespace AuthenticationSample.Pages.Members;
+
+public class PasswordChangeRequiredModel : PageModel
 {
-    public class PasswordChangeRequiredModel : PageModel
+    private readonly IAdvancedContentRepository _contentRepository;
+
+    public PasswordChangeRequiredModel(
+        IAdvancedContentRepository contentRepository
+        )
     {
-        private readonly IAdvancedContentRepository _contentRepository;
+        _contentRepository = contentRepository;
+    }
 
-        public PasswordChangeRequiredModel(
-            IAdvancedContentRepository contentRepository
-            )
+    [BindProperty]
+    [DataType(DataType.EmailAddress)]
+    [Required]
+    [EmailAddress(ErrorMessage = "Please use a valid email address")]
+    public string Email { get; set; } = string.Empty;
+
+    [BindProperty]
+    [Required]
+    [Display(Name = "Current password")]
+    [DataType(DataType.Password)]
+    public string OldPassword { get; set; } = string.Empty;
+
+    [BindProperty]
+    [Required]
+    [Display(Name = "New password")]
+    [DataType(DataType.Password)]
+    public string NewPassword { get; set; } = string.Empty;
+
+    [BindProperty]
+    [Required]
+    [Display(Name = "Confirm new password")]
+    [DataType(DataType.Password)]
+    [Compare(nameof(NewPassword), ErrorMessage = "Password does not match")]
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+
+    public bool IsSuccess { get; set; }
+
+    public string? ReturnUrl { get; set; }
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var isSignedIn = await _contentRepository
+            .Users()
+            .Current()
+            .IsSignedIn()
+            .ExecuteAsync();
+
+        if (isSignedIn)
         {
-            _contentRepository = contentRepository;
+            return RedirectToPage("Index");
         }
 
-        [BindProperty]
-        [DataType(DataType.EmailAddress)]
-        [Required]
-        [EmailAddress(ErrorMessage = "Please use a valid email address")]
-        public string Email { get; set; }
+        return Page();
+    }
 
-        [BindProperty]
-        [Required]
-        [Display(Name = "Current password")]
-        [DataType(DataType.Password)]
-        public string OldPassword { get; set; }
-
-        [BindProperty]
-        [Required]
-        [Display(Name = "New password")]
-        [DataType(DataType.Password)]
-        public string NewPassword { get; set; }
-
-        [BindProperty]
-        [Required]
-        [Display(Name = "Confirm new password")]
-        [DataType(DataType.Password)]
-        //[Compare(nameof(NewPassword), ErrorMessage = "Password does not match")]
-        public string ConfirmNewPassword { get; set; }
-
-        public bool IsSuccess { get; set; }
-
-        public string ReturnUrl { get; set; }
-
-        public async Task<IActionResult> OnGetAsync()
-        {
-            var isSignedIn = await _contentRepository
-                .Users()
-                .Current()
-                .IsSignedIn()
-                .ExecuteAsync();
-
-            if (isSignedIn)
+    public async Task OnPostAsync()
+    {
+        await _contentRepository
+            .WithModelState(this)
+            .Users()
+            .UpdatePasswordByCredentialsAsync(new UpdateUserPasswordByCredentialsCommand()
             {
-                return RedirectToPage("Index");
-            }
+                UserAreaCode = MemberUserArea.Code,
+                Username = Email,
+                OldPassword = OldPassword,
+                NewPassword = NewPassword
+            });
 
-            return Page();
-        }
-
-        public async Task OnPostAsync()
+        if (ModelState.IsValid)
         {
-            ValidatePasswordMatch();
-
-            await _contentRepository
-                .WithModelState(this)
-                .Users()
-                .UpdatePasswordByCredentialsAsync(new UpdateUserPasswordByCredentialsCommand()
-                {
-                    UserAreaCode = MemberUserArea.Code,
-                    Username = Email,
-                    OldPassword = OldPassword,
-                    NewPassword = NewPassword
-                });
-
-            if (ModelState.IsValid)
-            {
-                ReturnUrl = RedirectUrlHelper.GetAndValidateReturnUrl(this);
-                IsSuccess = true;
-            }
-        }
-
-        /// <summary>
-        /// Workaround for issue with CompareAttribute in RazorPages.
-        /// Fixed in .NET 5, so this can be removed once we upgrade
-        /// See https://github.com/dotnet/aspnetcore/issues/4895
-        /// </summary>
-        private void ValidatePasswordMatch()
-        {
-            if (NewPassword != ConfirmNewPassword)
-            {
-                ModelState.AddModelError(nameof(ConfirmNewPassword), "Password does not match");
-            }
+            ReturnUrl = RedirectUrlHelper.GetAndValidateReturnUrl(this);
+            IsSuccess = true;
         }
     }
 }

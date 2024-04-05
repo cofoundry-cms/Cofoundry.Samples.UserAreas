@@ -2,7 +2,7 @@
 @{
     Layout = null;
 
-    string title = null;
+    string? title = null;
 
     var metaDataModel = Model as IPageWithMetaDataViewModel;
     if (metaDataModel != null)
@@ -42,7 +42,7 @@
                     </ul>
 
                     <ul class="navbar-nav">
-                    @if (member.IsLoggedIn)
+                    @if (member.IsSignedIn)
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-page="/Members/MyAccount/Index">My Account</a>

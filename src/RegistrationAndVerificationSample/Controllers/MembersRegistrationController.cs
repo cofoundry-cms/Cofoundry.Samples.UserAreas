@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
 namespace RegistrationAndVerificationSample.Controllers;
 
@@ -137,7 +137,10 @@ public class MembersRegistrationController : Controller
             })
             .ExecuteAsync();
 
-        if (!ModelState.IsValid)
+        // If the result isn't successful, the the ModelState will be populated
+        // with an the error. "authResult.IsSuccess" is only referenced to improve
+        // nullable type handling in subsequent code.
+        if (!ModelState.IsValid || !authResult.IsSuccess)
         {
             return View();
         }

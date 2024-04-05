@@ -1,56 +1,55 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.ComponentModel.DataAnnotations;
 
-namespace AuthenticationSample.Pages.Members
+namespace AuthenticationSample.Pages.Members;
+
+public class ForgotPasswordModel : PageModel
 {
-    public class ForgotPasswordModel : PageModel
+    private readonly IAdvancedContentRepository _contentRepository;
+
+    public ForgotPasswordModel(
+        IAdvancedContentRepository contentRepository
+        )
     {
-        private readonly IAdvancedContentRepository _contentRepository;
+        _contentRepository = contentRepository;
+    }
 
-        public ForgotPasswordModel(
-            IAdvancedContentRepository contentRepository
-            )
+    [BindProperty]
+    [Required]
+    [EmailAddress(ErrorMessage = "Please use a valid email address")]
+    public string Email { get; set; } = string.Empty;
+
+    public bool IsSuccess { get; set; }
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var isSignedIn = await _contentRepository
+            .Users()
+            .Current()
+            .IsSignedIn()
+            .ExecuteAsync();
+
+        if (isSignedIn)
         {
-            _contentRepository = contentRepository;
+            return RedirectToPage("Index");
         }
 
-        [BindProperty]
-        [Required]
-        [EmailAddress(ErrorMessage = "Please use a valid email address")]
-        public string Email { get; set; }
+        return Page();
+    }
 
-        public bool IsSuccess { get; set; }
-
-        public async Task<IActionResult> OnGetAsync()
-        {
-            var isSignedIn = await _contentRepository
-                .Users()
-                .Current()
-                .IsSignedIn()
-                .ExecuteAsync();
-
-            if (isSignedIn)
+    public async Task OnPostAsync()
+    {
+        await _contentRepository
+            .WithModelState(this)
+            .Users()
+            .AccountRecovery()
+            .InitiateAsync(new InitiateUserAccountRecoveryViaEmailCommand()
             {
-                return RedirectToPage("Index");
-            }
+                UserAreaCode = MemberUserArea.Code,
+                Username = Email
+            });
 
-            return Page();
-        }
-
-        public async Task OnPostAsync()
-        {
-            await _contentRepository
-                .WithModelState(this)
-                .Users()
-                .AccountRecovery()
-                .InitiateAsync(new InitiateUserAccountRecoveryViaEmailCommand()
-                {
-                    UserAreaCode = MemberUserArea.Code,
-                    Username = Email
-                });
-
-            IsSuccess = ModelState.IsValid;
-        }
+        IsSuccess = ModelState.IsValid;
     }
 }

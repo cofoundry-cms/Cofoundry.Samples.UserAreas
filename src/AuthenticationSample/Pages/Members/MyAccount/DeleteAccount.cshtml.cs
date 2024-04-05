@@ -1,34 +1,33 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace AuthenticationSample.Pages.Members.MyAccount
+namespace AuthenticationSample.Pages.Members.MyAccount;
+
+[AuthorizeUserArea(MemberUserArea.Code)]
+public class DeleteAccountModel : PageModel
 {
-    [AuthorizeUserArea(MemberUserArea.Code)]
-    public class DeleteAccountModel : PageModel
+    private readonly IAdvancedContentRepository _contentRepository;
+
+    public DeleteAccountModel(
+        IAdvancedContentRepository contentRepository
+        )
     {
-        private readonly IAdvancedContentRepository _contentRepository;
+        _contentRepository = contentRepository;
+    }
 
-        public DeleteAccountModel(
-            IAdvancedContentRepository contentRepository
-            )
-        {
-            _contentRepository = contentRepository;
-        }
+    public bool IsSuccess { get; set; }
 
-        public bool IsSuccess { get; set; }
+    public void OnGet()
+    {
+    }
 
-        public void OnGet()
-        {
-        }
+    public async Task OnPostAsync()
+    {
+        await _contentRepository
+            .WithModelState(this)
+            .Users()
+            .Current()
+            .DeleteAsync();
 
-        public async Task OnPostAsync()
-        {
-            await _contentRepository
-                .WithModelState(this)
-                .Users()
-                .Current()
-                .DeleteAsync();
-
-            IsSuccess = ModelState.IsValid;
-        }
+        IsSuccess = ModelState.IsValid;
     }
 }
